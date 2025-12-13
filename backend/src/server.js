@@ -16,37 +16,39 @@ dotenv.config();
 
 const app = express();
 
-// ---- CORS FIX ----
+/* -------------------- CORS -------------------- */
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://shopgara.vercel.app" // frontend domain (change later)
+    ],
     credentials: true,
   })
 );
-app.options("*", cors());
 
-// ---- Body Parser ----
+/* -------------------- BODY PARSER -------------------- */
 app.use(express.json());
 
-// ---- API ROUTES ----
+/* -------------------- ROUTES -------------------- */
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/vendor", vendorRoutes);
-app.use("/api/imagekit", imagekitRoutes); // ✅ FIXED
+app.use("/api/imagekit", imagekitRoutes);
 
-// ---- 404 HANDLER ----
+/* -------------------- HEALTH CHECK -------------------- */
+app.get("/", (req, res) => {
+  res.send("ShopGara API running 🚀");
+});
+
+/* -------------------- ERROR HANDLERS -------------------- */
 app.use(notFound);
-
-// ---- GLOBAL ERROR HANDLER ----
 app.use(errorHandler);
 
-// ---- START SERVER ----
-const PORT = process.env.PORT || 5000;
+/* -------------------- DB CONNECT -------------------- */
+connectDB();
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-});
+/* -------------------- EXPORT FOR VERCEL -------------------- */
+export default app;
