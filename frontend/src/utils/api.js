@@ -1,4 +1,5 @@
-const BASE_URL = "http://127.0.0.1:5000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // Helper: Get JWT token
 const getToken = () => localStorage.getItem("token");
 
@@ -10,8 +11,6 @@ const authHeader = () => ({
 
 // Generic request function
 async function request(method, path, body = null, auth = false) {
-  console.log("FETCHING:", `${BASE_URL}${path}`);
-
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method,
@@ -60,30 +59,23 @@ export const vendorApi = {
   myOrders: () => request("GET", "/orders/vendor/my", null, true),
   updateOrderStatus: (id, status) =>
     request("PUT", `/orders/vendor/${id}/status`, { status }, true),
-  
 };
 
 // ADMIN API
 export const adminApi = {
   getVendorRequests: () => request("GET", "/admin/vendor-requests", null, true),
-
   approveVendor: (id) =>
     request("PUT", `/admin/vendors/${id}/approve`, {}, true),
-
   revokeVendor: (id) =>
     request("PUT", `/admin/vendors/${id}/revoke`, {}, true),
-
   allVendors: () => request("GET", "/admin/vendors", null, true),
-
   pendingOrders: () => request("GET", "/admin/orders/pending", null, true),
-
   assignOrder: (orderId, vendorId) =>
     request("PUT", `/admin/orders/${orderId}/assign`, { vendorId }, true),
-
   summary: () => request("GET", "/admin/summary", null, true),
 };
 
-// SUPER ADMIN – Admin Management (Create Admin, List Admins)
+// SUPER ADMIN
 export const superAdminApi = {
   createAdmin: (data) => request("POST", "/auth/create-admin", data, true),
   getAdmins: () => request("GET", "/auth/admins", null, true),

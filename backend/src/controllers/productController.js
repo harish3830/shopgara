@@ -2,7 +2,6 @@ import { Product } from "../models/Product.js";
 
 // Add product (vendor)
 export const addProduct = async (req, res, next) => {
-  console.log(req.file)
   try {
     const { name, category, price, stock = 0, description, imageUrl } = req.body;
 

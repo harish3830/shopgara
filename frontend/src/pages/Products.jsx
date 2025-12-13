@@ -15,7 +15,7 @@ export default function Products() {
     const loadProducts = async () => {
       setLoading(true);
       const res = await productApi.getAll();
-      setProducts(res || []);
+      setProducts(Array.isArray(res) ? res : []);
       setLoading(false);
     };
     loadProducts();
@@ -38,7 +38,6 @@ export default function Products() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-10">
-
         <div className="flex flex-wrap items-center justify-between gap-4">
           <input
             type="text"
@@ -61,9 +60,10 @@ export default function Products() {
           </select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-          
           {loading ? (
-            <p className="text-center text-gray-500 col-span-full">Loading products...</p>
+            <p className="text-center text-gray-500 col-span-full">
+              Loading products...
+            </p>
           ) : filteredProducts.length === 0 ? (
             <p className="text-gray-600 text-center col-span-full">
               No products found.
@@ -77,7 +77,6 @@ export default function Products() {
               />
             ))
           )}
-
         </div>
       </div>
     </div>
@@ -86,11 +85,13 @@ export default function Products() {
 function ProductCard({ product, addToCart }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 p-5 border border-gray-200 flex flex-col">
-      
       {/* IMAGE */}
       <div className="rounded-xl overflow-hidden">
         <img
-          src={product.imageUrl || "https://via.placeholder.com/500x350?text=No+Image"}
+          src={
+            product.imageUrl ||
+            "https://via.placeholder.com/500x350?text=No+Image"
+          }
           alt={product.name}
           className="h-52 w-full object-cover transition-transform duration-300 hover:scale-110"
         />
@@ -104,9 +105,7 @@ function ProductCard({ product, addToCart }) {
         {product.category}
       </p>
 
-      <p className="text-2xl font-bold text-blue-600 mt-4">
-        ₹{product.price}
-      </p>
+      <p className="text-2xl font-bold text-blue-600 mt-4">₹{product.price}</p>
 
       <button
         onClick={() => addToCart(product)}
