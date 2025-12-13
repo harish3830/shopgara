@@ -16,28 +16,21 @@ dotenv.config();
 
 const app = express();
 
-/* -------------------- DB CONNECT (IMPORTANT) -------------------- */
-await connectDB();
-
-/* -------------------- CORS -------------------- */
+/* CORS */
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://shopgara.vercel.app"
+      "https://shopgara.vercel.app",
     ],
     credentials: true,
   })
 );
 
-/* -------------------- BODY PARSER -------------------- */
+/* Body parser */
 app.use(express.json());
 
-/* -------------------- ROUTES -------------------- */
-app.get("/", (req, res) => {
-  res.send("ShopGara API running 🚀");
-});
-
+/* Routes */
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
@@ -45,9 +38,23 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/imagekit", imagekitRoutes);
 
-/* -------------------- ERROR HANDLERS -------------------- */
+/* Health check */
+app.get("/", (req, res) => {
+  res.send("ShopGara API running 🚀");
+});
+
+/* Error handlers */
 app.use(notFound);
 app.use(errorHandler);
 
-/* -------------------- EXPORT FOR VERCEL -------------------- */
+/* DB connect (SAFE for serverless) */
+let isConnected = false;
+const connectOnce = async () => {
+  if (!isConnected) {
+    await connectDB();
+    isConnected = true;
+  }
+};
+connectOnce();
+
 export default app;
