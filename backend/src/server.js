@@ -16,18 +16,24 @@ dotenv.config();
 
 const app = express();
 
+/* CONNECT DB ONCE */
+connectDB();
+
 /* Middleware */
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "http://localhost:5173",
+      "https://shopgara.vercel.app",
+      "https://shopgara-42mi.vercel.app",
+    ],
     credentials: true,
   })
 );
 app.use(express.json());
 
 /* Routes */
-app.get("/", async (req, res) => {
-  await connectDB(); // connect ONLY when request comes
+app.get("/", (req, res) => {
   res.send("ShopGara API running 🚀");
 });
 

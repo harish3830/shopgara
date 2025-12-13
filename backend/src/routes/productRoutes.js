@@ -14,7 +14,7 @@ const router = express.Router();
 router.get("/", getAllProducts);
 
 // VENDOR ROUTES
-router.post("/", protect, requireRole("vendor"),addProduct);
+router.post("/", protect, requireRole("vendor"), addProduct);
 router.get("/my", protect, requireRole("vendor"), getMyProducts);
 
 // NEW → UPDATE PRODUCT
