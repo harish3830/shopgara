@@ -7,7 +7,6 @@ import {
   deleteProduct
 } from "../controllers/productController.js";
 import { protect, requireRole } from "../middleware/authMiddleware.js";
-import upload from "../config/multer.js";
 
 const router = express.Router();
 
@@ -15,7 +14,7 @@ const router = express.Router();
 router.get("/", getAllProducts);
 
 // VENDOR ROUTES
-router.post("/", protect, requireRole("vendor"),upload.single("image"), addProduct);
+router.post("/", protect, requireRole("vendor"),addProduct);
 router.get("/my", protect, requireRole("vendor"), getMyProducts);
 
 // NEW → UPDATE PRODUCT
