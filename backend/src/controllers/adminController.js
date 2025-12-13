@@ -2,96 +2,156 @@ import { User } from "../models/User.js";
 import { Order } from "../models/Order.js";
 import { Product } from "../models/Product.js";
 
-export const getVendorRequests = async (req, res) => {
-  const vendors = await User.find({ role: "vendor", isApproved: false }).select(
-    "-password"
-  );
-  res.json(vendors);
-};
+/* ---------------- VENDOR REQUESTS ---------------- */
+export const getVendorRequests = async (req, res, next) => {
+  try {
+    const vendors = await User.find({
+      role: "vendor",
+      isApproved: false,
+    }).select("-password");
 
-export const approveVendor = async (req, res) => {
-  const vendor = await User.findById(req.params.id);
-  if (!vendor || vendor.role !== "vendor") {
-    return res.status(404).json({ message: "Vendor not found" });
+    res.json(vendors);
+  } catch (err) {
+    next(err);
   }
-  vendor.isApproved = true;
-  await vendor.save();
-  res.json({ message: "Vendor approved", vendor });
 };
 
-export const getAllVendors = async (req, res) => {
-  const vendors = await User.find({ role: "vendor", isApproved: true }).select(
-    "-password"
-  );
-  res.json(vendors);
-};
+/* ---------------- APPROVE VENDOR ---------------- */
+export const approveVendor = async (req, res, next) => {
+  try {
+    const vendor = await User.findById(req.params.id);
 
-export const getPendingOrders = async (req, res) => {
-  const orders = await Order.find({ status: "pendingAdmin" })
-    .populate("customer", "name email")
-    .sort("-createdAt");
-  res.json(orders);
-};
+    if (!vendor) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-export const revokeVendor = async (req, res) => {
-  const user = await User.findById(req.params.id);
+    vendor.role = "vendor";
+    vendor.isApproved = true;
+    await vendor.save();
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    res.json({ message: "Vendor approved", vendor });
+  } catch (err) {
+    next(err);
   }
-
-  if (user.role === "admin") {
-    return res
-      .status(400)
-      .json({ message: "Admin role cannot be revoked" });
-  }
-
-  user.role = "vendor";
-  user.isApproved = false;
-
-  await user.save();
-
-  res.json({
-    message: "Vendor role revoked",
-    user,
-  });
 };
 
+/* ---------------- REVOKE VENDOR ---------------- */
+export const revokeVendor = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-export const assignOrderToVendor = async (req, res) => {
-  const { vendorId } = req.body;
-  const order = await Order.findById(req.params.id);
-  if (!order) return res.status(404).json({ message: "Order not found" });
+    if (user.role === "admin") {
+      return res.status(400).json({
+        message: "Admin role cannot be revoked",
+      });
+    }
 
-  const vendor = await User.findById(vendorId);
-  if (!vendor || vendor.role !== "vendor" || !vendor.isApproved) {
-    return res.status(400).json({ message: "Invalid vendor" });
+    user.role = "customer";     // ✅ FIX
+    user.isApproved = false;    // ✅ FIX
+    await user.save();
+
+    res.json({
+      message: "Vendor role revoked",
+      user,
+    });
+  } catch (err) {
+    next(err);
   }
-
-  order.vendor = vendor._id;
-  order.status = "assignedToVendor";
-  await order.save();
-
-  res.json({ message: "Order assigned", order });
 };
 
-export const getAdminSummary = async (req, res) => {
-  const totalVendors = await User.countDocuments({
-    role: "vendor",
-    isApproved: true,
-  });
-  const totalProducts = await Product.countDocuments();
-  const totalOrders = await Order.countDocuments();
-  const revenueAgg = await Order.aggregate([
-    {
-      $match: {
-        status: { $in: ["assignedToVendor", "accepted", "packed", "shipped", "delivered"] },
+/* ---------------- ALL VENDORS ---------------- */
+export const getAllVendors = async (req, res, next) => {
+  try {
+    const vendors = await User.find({
+      role: "vendor",
+      isApproved: true,
+    }).select("-password");
+
+    res.json(vendors);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------------- PENDING ORDERS ---------------- */
+export const getPendingOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ status: "pendingAdmin" })
+      .populate("customer", "name email")
+      .sort("-createdAt");
+
+    res.json(orders);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------------- ASSIGN ORDER ---------------- */
+export const assignOrderToVendor = async (req, res, next) => {
+  try {
+    const { vendorId } = req.body;
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const vendor = await User.findById(vendorId);
+    if (!vendor || vendor.role !== "vendor" || !vendor.isApproved) {
+      return res.status(400).json({ message: "Invalid vendor" });
+    }
+
+    order.vendor = vendor._id;
+    order.status = "assignedToVendor";
+    await order.save();
+
+    res.json({ message: "Order assigned", order });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------------- ADMIN SUMMARY ---------------- */
+export const getAdminSummary = async (req, res, next) => {
+  try {
+    const totalVendors = await User.countDocuments({
+      role: "vendor",
+      isApproved: true,
+    });
+
+    const totalProducts = await Product.countDocuments();
+    const totalOrders = await Order.countDocuments();
+
+    const revenueAgg = await Order.aggregate([
+      {
+        $match: {
+          status: {
+            $in: [
+              "assignedToVendor",
+              "accepted",
+              "packed",
+              "shipped",
+              "delivered",
+            ],
+          },
+        },
       },
-    },
-    { $group: { _id: null, sum: { $sum: "$totalAmount" } } },
-  ]);
-  const totalRevenue = revenueAgg[0]?.sum || 0;
+      { $group: { _id: null, sum: { $sum: "$totalAmount" } } },
+    ]);
 
-  res.json({ totalVendors, totalProducts, totalOrders, totalRevenue });
+    const totalRevenue = revenueAgg[0]?.sum || 0;
+
+    res.json({
+      totalVendors,
+      totalProducts,
+      totalOrders,
+      totalRevenue,
+    });
+  } catch (err) {
+    next(err);
+  }
 };

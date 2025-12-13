@@ -8,21 +8,25 @@ import {
   assignOrderToVendor,
   getAdminSummary,
 } from "../controllers/adminController.js";
-import { protect, requireRole } from "../middleware/authMiddleware.js";
 
+import { protect, requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+/* 🔐 ADMIN PROTECTION — APPLIES TO ALL ROUTES BELOW */
 router.use(protect, requireRole("admin"));
 
+/* ---------------- VENDORS ---------------- */
 router.get("/vendor-requests", getVendorRequests);
 router.put("/vendors/:id/approve", approveVendor);
+router.put("/vendors/:id/revoke", revokeVendor);
 router.get("/vendors", getAllVendors);
 
+/* ---------------- ORDERS ---------------- */
 router.get("/orders/pending", getPendingOrders);
 router.put("/orders/:id/assign", assignOrderToVendor);
-router.put("/vendors/:id/revoke", protect,requireRole("admin"), revokeVendor);
 
+/* ---------------- DASHBOARD ---------------- */
 router.get("/summary", getAdminSummary);
 
 export default router;
