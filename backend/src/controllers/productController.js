@@ -1,4 +1,4 @@
-import { Product } from "../models/Product.js";
+import Product from "../models/Product.js";
 
 // Add product (vendor)
 export const addProduct = async (req, res, next) => {
@@ -6,7 +6,9 @@ export const addProduct = async (req, res, next) => {
     const { name, category, price, stock = 0, description, imageUrl } = req.body;
 
     if (!name || !category || !price) {
-      return res.status(400).json({ message: "Name, category and price are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, category and price are required" });
     }
 
     const product = await Product.create({
@@ -24,9 +26,14 @@ export const addProduct = async (req, res, next) => {
     next(err);
   }
 };
+
+// Vendor products
 export const getMyProducts = async (req, res, next) => {
   try {
-    const products = await Product.find({ vendor: req.user._id }).sort("-createdAt");
+    const products = await Product.find({
+      vendor: req.user._id,
+    }).sort("-createdAt");
+
     res.json(products);
   } catch (err) {
     next(err);
@@ -53,7 +60,9 @@ export const updateProduct = async (req, res, next) => {
     );
 
     if (!updated) {
-      return res.status(404).json({ message: "Not authorized or product not found" });
+      return res
+        .status(404)
+        .json({ message: "Not authorized or product not found" });
     }
 
     res.json(updated);
@@ -71,7 +80,9 @@ export const deleteProduct = async (req, res, next) => {
     });
 
     if (!deleted) {
-      return res.status(404).json({ message: "Not authorized or product not found" });
+      return res
+        .status(404)
+        .json({ message: "Not authorized or product not found" });
     }
 
     res.json({ message: "Product deleted" });

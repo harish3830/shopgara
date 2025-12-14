@@ -1,6 +1,6 @@
-import { User } from "../models/User.js";
-import { Order } from "../models/Order.js";
-import { Product } from "../models/Product.js";
+import User from "../models/User.js";
+import Order from "../models/Order.js";
+import Product from "../models/Product.js";
 
 /* ---------------- VENDOR REQUESTS ---------------- */
 export const getVendorRequests = async (req, res, next) => {
@@ -50,8 +50,8 @@ export const revokeVendor = async (req, res, next) => {
       });
     }
 
-    user.role = "customer";     // ✅ FIX
-    user.isApproved = false;    // ✅ FIX
+    user.role = "customer";
+    user.isApproved = false;
     await user.save();
 
     res.json({
