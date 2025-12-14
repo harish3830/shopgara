@@ -15,7 +15,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
 import imagekitRoutes from "./routes/imagekitRoutes.js";
 
-// Middlewares
+// Error Middlewares
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 // ================= APP INIT =================
@@ -24,27 +24,34 @@ const app = express();
 // ================= CONNECT DATABASE =================
 connectDB();
 
-// ================= CORS CONFIG =================
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://shopgara.vercel.app",
-  "https://shopgara-42mi.vercel.app",
-  "https://shopgara-a43j.vercel.app",
-];
-
+// ================= CORS CONFIG (RENDER + VERCEL SAFE) =================
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow server-to-server & Postman
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      // Allow server-to-server, Postman, curl
+      if (!origin) return callback(null, true);
+
+      // Allow localhost (development)
+      if (origin === "http://localhost:5173") {
+        return callback(null, true);
       }
+
+      // Allow ALL Vercel deployments (preview + production)
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      // Block everything else
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// IMPORTANT: allow preflight requests
+app.options("*", cors());
 
 // ================= BODY PARSER =================
 app.use(express.json());
